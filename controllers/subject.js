@@ -1,6 +1,6 @@
 const { Subject } = require('../database/db');
 const { hashId } = require('../utils/helper');
-const { Result, ErrorResult, } = require('../utils/base_response'); 
+const { Result, ErrorResult } = require('../utils/base_response');
 
 const attributes = ['idSubject', 'name'];
 
@@ -73,7 +73,17 @@ module.exports.deleteAnSubject = function (req, res, next) {
 }
 
 module.exports.importSubjects = function (req, res, next) {
-    // Save list Subject from Client
+    const subjects = req.body.map((subject, index) => {
+        return {
+            idSubject: hashId((Date.now().toString() + index)),
+            name: subject.name,
+            isActive: 1,
+        }
+    });
+
+    Subject.bulkCreate(subjects)
+        .then(resp => res.json(Result(resp)))
+        .catch(err => res.json(ErrorResult(err)))
 }
 
 module.exports.searchSubjects = function (req, res, next) {

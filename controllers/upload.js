@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-
 const multer = require('multer');
 
 const storage = multer.diskStorage({
@@ -13,11 +12,10 @@ const storage = multer.diskStorage({
 })
 
 const upload = multer({
-    storage: storage
+    storage
 });
 
 router.post('/', upload.single('photo'), function (req, res) {
-    console.log(req.file);
     res.end(req.file.filename)
 })
 

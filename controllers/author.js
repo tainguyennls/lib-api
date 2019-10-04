@@ -70,7 +70,17 @@ module.exports.deleteAnAuthor = function (req, res, next) {
 }
 
 module.exports.importAuthors = function (req, res, next) {
-    // Save list Author from Client
+    const authors = req.body.map((author, index) => {
+        return {
+            idAuthor: hashId((Date.now().toString() + index)),
+            name: author.name,
+            isActive: 1,
+        }
+    });
+
+    Author.bulkCreate(authors)
+        .then(resp => res.json(Result(resp)))
+        .catch(err => res.json(ErrorResult(err)))
 }
 
 module.exports.searchAuthors = function (req, res, next) {

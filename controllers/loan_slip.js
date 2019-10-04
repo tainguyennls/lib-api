@@ -1,18 +1,18 @@
-const express = require('express');
-const { Reader, LoanSlip, Librarian, LoanSlipDetail } = require('../database/db');
-const { ErrorResult, Result } = require('./../utils/base_response');
 const { hashId } = require('../utils/helper');
-const router = express.Router();
+const { ErrorResult, Result } = require('./../utils/base_response');
+const { Reader, LoanSlip, Librarian, LoanSlipDetail } = require('../database/db');
 
-router.use((req, res, next) => {
-    next();
-});
-
-router.get('/', async (req, res) => {
+module.exports.getAllLoanSlips = async (req, res, next) => {
     try {
-        const loanSlips  = await LoanSlip.findAll({ raw: true });
-        const readers    = await Reader.findAll({ raw: true });
-        const librarians = await Librarian.findAll({ raw: true });
+        const loanSlips = await LoanSlip.findAll({
+            raw: true
+        });
+        const readers = await Reader.findAll({
+            raw: true
+        });
+        const librarians = await Librarian.findAll({
+            raw: true
+        });
         const output = loanSlips.map(loanSlip => {
             const reader = readers.filter(reader => reader.idReader === loanSlip.idReader);
             const librarian = librarians.filter(librarian => librarian.idLibrarian === loanSlip.idLibrarian);
@@ -30,19 +30,29 @@ router.get('/', async (req, res) => {
     } catch (error) {
         res.json(ErrorResult(500, error));
     }
-});
+}
 
-router.get('/:id', (req, res) => {
-    LoanSlip.findByPk(req.params.id).then(loanSlip => {
-        if (loanSlip != null) {
-            res.json(Result(loanSlip));
-        } else {
-            res.json(ErrorResult(204, "Not loan slip found !"));
-        }
-    });
-});
+module.exports.getAnLoanSlip = async (req, res, next) => {
+    try {
+        const loanSlip = await LoanSlip.findByPk(req.params.idLoanSlip);
+        const reader = await Reader.findByPk(loanSlip.idReader);
+        const librarian = await Librarian.findByPk(loanSlip.idLibrarian);
+        const output = {
+            status: loanSlip.status,
+            quantity: loanSlip.quantity,
+            userName: reader.fullName,
+            dateBorrow: loanSlip.dateBorrow,
+            idLoanSlip: loanSlip.idLoanSlip,
+            librarianName: librarian.fullName,
+            dateWillReturn: loanSlip.dateWillReturn,
+        };
+        res.json(Result(output));
+    } catch (error) {
+        res.json(ErrorResult(500, error));
+    }
+}
 
-router.post('/', (req, res) => {
+module.exports.createAnLoanSlip = function (req, res, next) {
     const loanSlip = {
         idLoanSlip: hashId(new Date().toLocaleString()),
         idReader: req.body.user,
@@ -71,43 +81,22 @@ router.post('/', (req, res) => {
             }
         })
         .catch(error => ErrorResult(500, error.errors));
+}
 
-});
-
-// router.delete('/:id', (req, res) => {
-//     LoanSlipPayInfo.findAll({
-//         where: {
-//             LSP_ID: req.params.id
-//         }
-//     }).then(type => {
-//         if (Array.isArray(type) && type.length === 0) {
-//             LoanSlipPay.destroy({
-//                 where: {
-//                     id: req.params.id
-//                 }
-//             }).then(type => {
-//                 res.json(Result(type));
-//             }).catch(err => {
-//                 res.json(ErrorResult(500, err.errors));
-//             });
-//         } else {
-//             res.json(ErrorResult(200, 'Has Frimary Key'));
-//         }
-//     })
-// });
-
-router.put('/status/:id', (req, res) => {
-    LoanSlip.update({
-        where: {
-            idLoanSlip: req.params.id
+module.exports.deleteAnLoanSlip = function (req, res, next) {
+    LoanSlip.findByPk(req.params.idLoanSlip).then(loanSlip => {
+        if (loanSlip != null) {
+            loanSlip.update({
+                    isActive: 0,
+                })
+                .then(resp => res.json(Result(resp)))
+                .catch(err => res.json(ErrorResult(500, err.errors)));
+        } else {
+            res.json(ErrorResult(204, "Not data found !"));
         }
-    }, {
-        iActive: 0,
-    }).then(type => {
-        res.json(Result(type));
-    }).catch(err => {
-        res.status(500).json(ErrorResult(500, err.errors));
     });
-});
+}
 
-module.exports = router;
+module.exports.searchLoanSlip = function (req, res, next) {
+    // Search LoanSlip from db.
+}

@@ -1,57 +1,46 @@
-const express = require('express');
-const {
-    Reader
-} = require('../database/db');
-const jwt = require('jsonwebtoken');
-const helper = require('../utils/helper');
-const {
-    Result,
-    ErrorResult,
-} = require('../utils/base_response');
-const {
-    hashId
-} = require('../utils/helper');
-const router = express.Router();
+const { Reader } = require('../database/db');
+const { hashId } = require('../utils/helper');
+const { Result, ErrorResult } = require('../utils/base_response');
 
-router.use((req, res, next) => {
-    next();
-});
+const attributes = ['idReader', 'fullName', 'identityCardNumber', 'email', 'phone', 'registerDate', 'avatar'];
 
-
-router.get('/', (req, res) => {
+module.exports.getAllReaders = function (req, res, next) {
     Reader.findAll({
+        attributes,
         where: {
             isActive: 1
         }
     }).then(reader => {
         res.json(Result(reader));
     });
-});
+}
 
-router.get('/:idReader', (req, res) => {
-    Reader.findByPk(req.params.idReader).then(reader => {
+module.exports.getAnReader = function (req, res, next) {
+    Reader.findByPk(req.params.idReader, {
+        attributes
+    }).then(reader => {
         if (reader != null) {
             res.json(Result(reader));
         } else {
-            res.json(ErrorResult(204, "Not reader found !"));
+            res.json(ErrorResult(204, "Not data found !"));
         }
     });
-});
+}
 
-router.post('/', (req, res) => {
-    const usr = {
+module.exports.createAnReader = function (req, res, next) {
+    const reader = {
         idReader: hashId(new Date().toLocaleString()),
         ...req.body,
-        iActive: 1,
+        isActive: 1,
     }
-    Reader.create(usr).then(response => {
-        res.json(Result(response));
+    Reader.create(reader).then(resp => {
+        res.json(Result(resp));
     }).catch(err => {
         res.json(ErrorResult(500, err.errors));
     });
-});
+}
 
-router.put('/:idReader', (req, res) => {
+module.exports.updateAnReader = function (req, res, next) {
     Reader.findByPk(req.params.idReader).then(reader => {
         if (reader != null) {
             reader.update({
@@ -67,31 +56,37 @@ router.put('/:idReader', (req, res) => {
                 userName: req.body.userName,
                 password: req.body.password,
                 idReaderType: req.body.idReaderType,
-
-            }).then(response => {
-                res.json(Result(response));
+            }).then(resp => {
+                res.json(Result(resp));
             }).catch(err => {
                 res.json(ErrorResult(500, err.errors));
             });
         } else {
-            res.json(ErrorResult(204, "Not reader found !"));
+            res.json(ErrorResult(204, "Not data found !"));
         }
     });
-});
+}
 
-router.put('/status/:idReader', (req, res) => {
-    Reader.update({
-        where: {
-            idReader: req.params.idReader
+module.exports.deleteAnReader = function (req, res, next) {
+    Reader.findByPk(req.params.idReader).then(reader => {
+        if (reader != null) {
+            reader.update({
+                isActive: 0,
+            }).then(resp => {
+                res.json(Result(resp));
+            }).catch(err => {
+                res.json(ErrorResult(500, err.errors));
+            });
+        } else {
+            res.json(ErrorResult(204, "Not data found !"));
         }
-    }, {
-        iActive: 0,
-    }).then(type => {
-        res.json(Result(type));
-    }).catch(err => {
-        res.json(ErrorResult(500, err.errors));
     });
-});
+}
 
+module.exports.importReaders = function (req, res, next) {
+    // Save list Readers from Client
+}
 
-module.exports = router;
+module.exports.searchReaders = function (req, res, next) {
+    // Search Readers from db.
+}

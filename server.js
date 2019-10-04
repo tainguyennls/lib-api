@@ -10,19 +10,14 @@ const api = 'api';
 const port = 8888;
 const baseUrl = `/${api}/${v}`;
 
-// Auths
-// const auth = require('./middleware/auth');
-// app.use(auth);
-
+const auth = require('./middleware/auth');
+app.use(auth);
 app.use(cors({
     methods: ['OPTIONS', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 }));
-
 app.use(bodyParser.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
-
 app.use(baseUrl, routes);
-
 app.use((req, res) => {
     res.status(404).json(ErrorResult(500, 'Your page you request not found or you are not permitted access it !'));
 });

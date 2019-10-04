@@ -1,12 +1,15 @@
 var express = require('express')
 var router = express()
 
+const bookController = require('./../controllers/book');
+const readerController = require('./../controllers/reader');
+const uploadController = require('./../controllers/upload');
 const authorController = require('./../controllers/author');
 const subjectController = require('./../controllers/subject');
-const librarianController = require('./../controllers/librarian');
-const bookController = require('./../controllers/book');
-const readerTypeController = require('./../controllers/reader_type');
+const loanSlipController = require('./../controllers/loan_slip');
 const bookTitleController = require('./../controllers/book_title');
+const librarianController = require('./../controllers/librarian');
+const readerTypeController = require('./../controllers/reader_type');
 
 // Author
 router.route('/authors')
@@ -32,6 +35,9 @@ router.route('/subjects/:idSubject')
 router.route('/subjects/status/:idSubject')
     .delete(subjectController.deleteAnSubject)
 
+router.route('/subjects/imports')
+    .post(subjectController.importSubjects)
+
 // Librarian
 router.route('/librarians')
     .get(librarianController.getAllLibrarians)
@@ -56,6 +62,18 @@ router.route('/books/:idBook')
 router.route('/books/status/:idBook')
     .delete(bookController.deleteAnBook)
 
+// Reader
+router.route('/readers')
+    .get(readerController.getAllReaders)
+    .post(readerController.createAnReader)
+
+router.route('/readers/:idReader')
+    .get(readerController.getAnReader)
+    .put(readerController.updateAnReader)
+
+router.route('/readers/status/:idReader')
+    .delete(readerController.deleteAnReader)
+
 // ReaderType
 router.route('/reader-type')
     .get(readerTypeController.getAllReaderTypes)
@@ -79,5 +97,20 @@ router.route('/book-title/:idBookTitle')
 
 router.route('/book-title/status/:idBookTitle')
     .delete(bookTitleController.deleteAnBookTitle)
+
+// LoanSlip
+router.route('/loan-slip')
+    .get(loanSlipController.getAllLoanSlips)
+    .post(loanSlipController.createAnLoanSlip)
+
+router.route('/loan-slip/:idLoanSlip')
+    .get(loanSlipController.getAnLoanSlip)
+
+router.route('/loan-slip/status/:idLoanSlip')
+    .delete(loanSlipController.deleteAnLoanSlip)
+
+// Upload
+router.use('/storage/upload', uploadController);
+
 
 module.exports = router
